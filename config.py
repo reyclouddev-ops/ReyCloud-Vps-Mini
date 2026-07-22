@@ -1,34 +1,58 @@
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent
-
 class Config:
-
-    SECRET_KEY = os.environ.get(
+    # ==========================
+    # APP
+    # ==========================
+    SECRET_KEY = os.getenv(
         "SECRET_KEY",
         os.urandom(24).hex()
     )
 
-    PORT = int(os.environ.get("PORT", 5000))
+    PORT = int(os.getenv("PORT", 5000))
 
-    NORMAL_PASSWORD = os.environ.get(
-        "NORMAL_PASSWORD",
-        "Rey190327"
-    )
+    DEBUG = False
+
+    # ==========================
+    # PROJECT PATH
+    # ==========================
+    BASE_DIR = Path(__file__).parent
 
     DATA_FILE = BASE_DIR / "data.json"
 
     SERVERS_DIR = BASE_DIR / "servers"
 
-    LOGS_DIR = BASE_DIR / "logs"
+    TEMPLATES_DIR = BASE_DIR / "templates"
 
-    UPLOADS_DIR = BASE_DIR / "uploads"
+    STATIC_DIR = BASE_DIR / "static"
+
+    # ==========================
+    # LOGIN
+    # ==========================
+    DEFAULT_PASSWORD = os.getenv(
+        "NORMAL_PASSWORD",
+        "Rey190327"
+    )
+
+    # ==========================
+    # PANEL
+    # ==========================
+    DEFAULT_PORT = 8080
 
     AUTO_RESTART_INTERVAL = 300
 
-    SERVERS_DIR.mkdir(exist_ok=True)
+    LOG_LIMIT = 1024 * 1024
 
-    LOGS_DIR.mkdir(exist_ok=True)
+    MAX_LOG_LINES = 200
 
-    UPLOADS_DIR.mkdir(exist_ok=True)
+    # ==========================
+    # WEBSITE
+    # ==========================
+    SITE_NAME = "ReyCloud VPS Mini"
+
+    THEME_COLOR = "#00ff41"
+
+    MAINTENANCE = False
+
+    MAINTENANCE_MESSAGE = "System under maintenance."
