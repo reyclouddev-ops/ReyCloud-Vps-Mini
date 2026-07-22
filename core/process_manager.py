@@ -5,11 +5,13 @@ import subprocess
 try:
     import psutil
     PSUTIL = True
-except Exception:
+except ImportError:
     psutil = None
     PSUTIL = False
 
+
 RUNNING_PROCESSES = {}
+
 
 def is_process_alive(pid):
     if not pid:
@@ -35,10 +37,19 @@ def kill_process(pid):
 
     if PSUTIL:
         try:
-            p = psutil.Process(pid)
-            p.kill()
+            proc = psutil.Process(pid)
+
+            for child in proc.children(recursive=True):
+                try:
+                    child.kill()
+                except Exception:
+                    pass
+
+            proc.kill()
+
         except Exception:
             pass
+
         return
 
     try:
@@ -47,41 +58,56 @@ def kill_process(pid):
         pass
 
 
-def start_process(command, cwd=None, env=None, logfile=None):
-    log = open(logfile, "a") if logfile else subprocess.DEVNULL
+def start_process(
+    name,
+    command,
+    cwd,
+    env=None,
+    log_file=None
+):
+
+    if log_file:
+        log = open(log_file, "a")
+    else:
+        log = subprocess.DEVNULL
 
     proc = subprocess.Popen(
         command,
         cwd=cwd,
         stdout=log,
         stderr=log,
-        env=env,
-        preexec_fn=os.setsid if os.name != "nt" else None
+        env=env
     )
 
-    RUNNING_PROCESSES[proc.pid] = {
+    RUNNING_PROCESSES[name] = {
         "proc": proc,
         "log": log
     }
 
-    return proc
+    return proc.pid
 
 
-def stop_process(pid):
-    if pid not in RUNNING_PROCESSES:
-        kill_process(pid)
-        return
+def stop_process(name):
 
-    entry = RUNNING_PROCESSES[pid]
+    if name not in RUNNING_PROCESSES:
+        return False
+
+    proc = RUNNING_PROCESSES[name]["proc"]
 
     try:
-        entry["proc"].terminate()
+        proc.terminate()
+        proc.wait(timeout=5)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+    try:
+        RUNNING_PROCESSES[name]["log"].close()
     except Exception:
         pass
 
-    try:
-        entry["log"].close()
-    except Exception:
-        pass
+    del RUNNING_PROCESSES[name]
 
-    RUNNING_PROCESSES.pop(pid, None)
+    return True
