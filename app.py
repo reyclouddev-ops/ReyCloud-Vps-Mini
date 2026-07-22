@@ -9,3 +9,10 @@ from core.utils import (
     list_files,
     format_size
 )
+
+from core.system import system_stats
+
+@app.route("/api/stats")
+@login_required
+def api_stats():
+    return jsonify(system_stats())
