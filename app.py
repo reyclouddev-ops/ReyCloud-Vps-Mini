@@ -19,6 +19,13 @@ from core.process_manager import (
 )
 
 from core.system import system_stats
+from core.auto_restart import start_auto_restart
+
+app = Flask(__name__)
+
+app.config["SECRET_KEY"] = Config.SECRET_KEY
+
+start_auto_restart()
 
 @app.route("/api/stats")
 @login_required
